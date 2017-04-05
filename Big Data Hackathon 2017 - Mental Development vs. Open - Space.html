@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css" />
+        <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/MarkerCluster.css" />
+        <link rel="stylesheet" href="css/MarkerCluster.Default.css" />
+        <style>
+        #map {
+            width: 764px;
+            height: 634px;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/leaflet-heat.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/OSMBuildings-Leaflet.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/proj4.js"></script>
+        <script src="js/proj4leaflet.js"></script>
+        <script src="js/leaflet.markercluster.js"></script>
+        <script src="data/DevelopmentalDisorderTrends20130.js"></script>
+        <script src="data/DevelopmentalDisorderTrends20121.js"></script>
+        <script src="data/DevelopmentalDisorderTrends20112.js"></script>
+        <script src="data/DevelopmentalDisorderTrends20103.js"></script>
+        <script src="data/ParksOpenSpace4.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var crs = new L.Proj.CRS('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs', {
+            resolutions: [2800, 1400, 700, 350, 175, 84, 42, 21, 11.2, 5.6, 2.8, 1.4, 0.7, 0.35, 0.14, 0.07],
+        });
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        var map = L.map('map', {
+            crs: crs,
+            continuousWorld: false,
+            worldCopyJump: false, 
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[32.4660584409,-117.636354393],[33.5746137324,-116.042250991]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        function geoJson2heat(geojson, weight) {
+          return geojson.features.map(function(feature) {
+            return [
+              feature.geometry.coordinates[1],
+              feature.geometry.coordinates[0],
+              feature.properties[weight]
+            ];
+          });
+        }
+        function pop_DevelopmentalDisorderTrends20130(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_DevelopmentalDisorderTrends20130(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2"><strong>SRA</strong><br />' + (feature.properties['SRA'] !== null ? Autolinker.link(String(feature.properties['SRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>NAME</strong><br />' + (feature.properties['NAME'] !== null ? Autolinker.link(String(feature.properties['NAME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CONDITION'] !== null ? Autolinker.link(String(feature.properties['CONDITION'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OUTCOME'] !== null ? Autolinker.link(String(feature.properties['OUTCOME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['YEAR'] !== null ? Autolinker.link(String(feature.properties['YEAR'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Geography</th>\
+                        <td>' + (feature.properties['Geography'] !== null ? Autolinker.link(String(feature.properties['Geography'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RegionNum'] !== null ? Autolinker.link(String(feature.properties['RegionNum'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RegionName</th>\
+                        <td>' + (feature.properties['RegionName'] !== null ? Autolinker.link(String(feature.properties['RegionName'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicity'] !== null ? Autolinker.link(String(feature.properties['Urbanicity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicit2'] !== null ? Autolinker.link(String(feature.properties['Urbanicit2'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SESSort'] !== null ? Autolinker.link(String(feature.properties['SESSort'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Socioecono'] !== null ? Autolinker.link(String(feature.properties['Socioecono'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SDNUM'] !== null ? Autolinker.link(String(feature.properties['SDNUM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Supervisor'] !== null ? Autolinker.link(String(feature.properties['Supervisor'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Case</th>\
+                        <td>' + (feature.properties['Total_Case'] !== null ? Autolinker.link(String(feature.properties['Total_Case'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Rate</th>\
+                        <td>' + (feature.properties['Total_Rate'] !== null ? Autolinker.link(String(feature.properties['Total_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Age_Adjust</th>\
+                        <td>' + (feature.properties['Age_Adjust'] !== null ? Autolinker.link(String(feature.properties['Age_Adjust'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Cases</th>\
+                        <td>' + (feature.properties['Male_Cases'] !== null ? Autolinker.link(String(feature.properties['Male_Cases'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Rate</th>\
+                        <td>' + (feature.properties['Male_Rate'] !== null ? Autolinker.link(String(feature.properties['Male_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Cas</th>\
+                        <td>' + (feature.properties['Female_Cas'] !== null ? Autolinker.link(String(feature.properties['Female_Cas'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Rat</th>\
+                        <td>' + (feature.properties['Female_Rat'] !== null ? Autolinker.link(String(feature.properties['Female_Rat'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['parkSRA'] !== null ? Autolinker.link(String(feature.properties['parkSRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">parkArea</th>\
+                        <td>' + (feature.properties['parkArea'] !== null ? Autolinker.link(String(feature.properties['parkArea'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_DevelopmentalDisorderTrends20130() {
+            return {
+                pane: 'pane_DevelopmentalDisorderTrends20130',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(178,223,138,1.0)',
+            }
+        }
+        map.createPane('pane_DevelopmentalDisorderTrends20130');
+        map.getPane('pane_DevelopmentalDisorderTrends20130').style.zIndex = 600;
+        map.getPane('pane_DevelopmentalDisorderTrends20130').style['mix-blend-mode'] = 'normal';
+    var layer_DevelopmentalDisorderTrends20130 = new L.geoJson(json_DevelopmentalDisorderTrends20130, {
+        attribution: '<a href=""></a>',
+        pane: 'pane_DevelopmentalDisorderTrends20130',
+        onEachFeature: pop_DevelopmentalDisorderTrends20130,
+        style: style_DevelopmentalDisorderTrends20130
+    });
+        bounds_group.addLayer(layer_DevelopmentalDisorderTrends20130);
+        map.addLayer(layer_DevelopmentalDisorderTrends20130);
+        function pop_DevelopmentalDisorderTrends20121(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_DevelopmentalDisorderTrends20121(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2"><strong>SRA</strong><br />' + (feature.properties['SRA'] !== null ? Autolinker.link(String(feature.properties['SRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>NAME</strong><br />' + (feature.properties['NAME'] !== null ? Autolinker.link(String(feature.properties['NAME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CONDITION'] !== null ? Autolinker.link(String(feature.properties['CONDITION'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OUTCOME'] !== null ? Autolinker.link(String(feature.properties['OUTCOME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['YEAR'] !== null ? Autolinker.link(String(feature.properties['YEAR'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Geography</th>\
+                        <td>' + (feature.properties['Geography'] !== null ? Autolinker.link(String(feature.properties['Geography'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RegionNum'] !== null ? Autolinker.link(String(feature.properties['RegionNum'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RegionName</th>\
+                        <td>' + (feature.properties['RegionName'] !== null ? Autolinker.link(String(feature.properties['RegionName'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicity'] !== null ? Autolinker.link(String(feature.properties['Urbanicity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicit2'] !== null ? Autolinker.link(String(feature.properties['Urbanicit2'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SESSort'] !== null ? Autolinker.link(String(feature.properties['SESSort'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Socioecono'] !== null ? Autolinker.link(String(feature.properties['Socioecono'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SDNUM'] !== null ? Autolinker.link(String(feature.properties['SDNUM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Supervisor'] !== null ? Autolinker.link(String(feature.properties['Supervisor'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Case</th>\
+                        <td>' + (feature.properties['Total_Case'] !== null ? Autolinker.link(String(feature.properties['Total_Case'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Rate</th>\
+                        <td>' + (feature.properties['Total_Rate'] !== null ? Autolinker.link(String(feature.properties['Total_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Age_Adjust</th>\
+                        <td>' + (feature.properties['Age_Adjust'] !== null ? Autolinker.link(String(feature.properties['Age_Adjust'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Cases</th>\
+                        <td>' + (feature.properties['Male_Cases'] !== null ? Autolinker.link(String(feature.properties['Male_Cases'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Rate</th>\
+                        <td>' + (feature.properties['Male_Rate'] !== null ? Autolinker.link(String(feature.properties['Male_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Cas</th>\
+                        <td>' + (feature.properties['Female_Cas'] !== null ? Autolinker.link(String(feature.properties['Female_Cas'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Rat</th>\
+                        <td>' + (feature.properties['Female_Rat'] !== null ? Autolinker.link(String(feature.properties['Female_Rat'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['parkSRA'] !== null ? Autolinker.link(String(feature.properties['parkSRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">parkArea</th>\
+                        <td>' + (feature.properties['parkArea'] !== null ? Autolinker.link(String(feature.properties['parkArea'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_DevelopmentalDisorderTrends20121() {
+            return {
+                pane: 'pane_DevelopmentalDisorderTrends20121',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(253,229,83,1.0)',
+            }
+        }
+        map.createPane('pane_DevelopmentalDisorderTrends20121');
+        map.getPane('pane_DevelopmentalDisorderTrends20121').style.zIndex = 601;
+        map.getPane('pane_DevelopmentalDisorderTrends20121').style['mix-blend-mode'] = 'normal';
+    var layer_DevelopmentalDisorderTrends20121 = new L.geoJson(json_DevelopmentalDisorderTrends20121, {
+        attribution: '<a href=""></a>',
+        pane: 'pane_DevelopmentalDisorderTrends20121',
+        onEachFeature: pop_DevelopmentalDisorderTrends20121,
+        style: style_DevelopmentalDisorderTrends20121
+    });
+        bounds_group.addLayer(layer_DevelopmentalDisorderTrends20121);
+        map.addLayer(layer_DevelopmentalDisorderTrends20121);
+        function pop_DevelopmentalDisorderTrends20112(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_DevelopmentalDisorderTrends20112(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2"><strong>SRA</strong><br />' + (feature.properties['SRA'] !== null ? Autolinker.link(String(feature.properties['SRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>NAME</strong><br />' + (feature.properties['NAME'] !== null ? Autolinker.link(String(feature.properties['NAME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CONDITION'] !== null ? Autolinker.link(String(feature.properties['CONDITION'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OUTCOME'] !== null ? Autolinker.link(String(feature.properties['OUTCOME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['YEAR'] !== null ? Autolinker.link(String(feature.properties['YEAR'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Geography</th>\
+                        <td>' + (feature.properties['Geography'] !== null ? Autolinker.link(String(feature.properties['Geography'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RegionNum'] !== null ? Autolinker.link(String(feature.properties['RegionNum'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RegionName</th>\
+                        <td>' + (feature.properties['RegionName'] !== null ? Autolinker.link(String(feature.properties['RegionName'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicity'] !== null ? Autolinker.link(String(feature.properties['Urbanicity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicit2'] !== null ? Autolinker.link(String(feature.properties['Urbanicit2'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SESSort'] !== null ? Autolinker.link(String(feature.properties['SESSort'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Socioecono'] !== null ? Autolinker.link(String(feature.properties['Socioecono'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SDNUM'] !== null ? Autolinker.link(String(feature.properties['SDNUM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Supervisor'] !== null ? Autolinker.link(String(feature.properties['Supervisor'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Case</th>\
+                        <td>' + (feature.properties['Total_Case'] !== null ? Autolinker.link(String(feature.properties['Total_Case'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Rate</th>\
+                        <td>' + (feature.properties['Total_Rate'] !== null ? Autolinker.link(String(feature.properties['Total_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Age_Adjust</th>\
+                        <td>' + (feature.properties['Age_Adjust'] !== null ? Autolinker.link(String(feature.properties['Age_Adjust'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Cases</th>\
+                        <td>' + (feature.properties['Male_Cases'] !== null ? Autolinker.link(String(feature.properties['Male_Cases'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Rate</th>\
+                        <td>' + (feature.properties['Male_Rate'] !== null ? Autolinker.link(String(feature.properties['Male_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Cas</th>\
+                        <td>' + (feature.properties['Female_Cas'] !== null ? Autolinker.link(String(feature.properties['Female_Cas'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Rat</th>\
+                        <td>' + (feature.properties['Female_Rat'] !== null ? Autolinker.link(String(feature.properties['Female_Rat'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">parkSRA</th>\
+                        <td>' + (feature.properties['parkSRA'] !== null ? Autolinker.link(String(feature.properties['parkSRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">parkArea</th>\
+                        <td>' + (feature.properties['parkArea'] !== null ? Autolinker.link(String(feature.properties['parkArea'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_DevelopmentalDisorderTrends20112() {
+            return {
+                pane: 'pane_DevelopmentalDisorderTrends20112',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(166,206,227,1.0)',
+            }
+        }
+        map.createPane('pane_DevelopmentalDisorderTrends20112');
+        map.getPane('pane_DevelopmentalDisorderTrends20112').style.zIndex = 602;
+        map.getPane('pane_DevelopmentalDisorderTrends20112').style['mix-blend-mode'] = 'normal';
+    var layer_DevelopmentalDisorderTrends20112 = new L.geoJson(json_DevelopmentalDisorderTrends20112, {
+        attribution: '<a href=""></a>',
+        pane: 'pane_DevelopmentalDisorderTrends20112',
+        onEachFeature: pop_DevelopmentalDisorderTrends20112,
+        style: style_DevelopmentalDisorderTrends20112
+    });
+        bounds_group.addLayer(layer_DevelopmentalDisorderTrends20112);
+        map.addLayer(layer_DevelopmentalDisorderTrends20112);
+        function pop_DevelopmentalDisorderTrends20103(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_DevelopmentalDisorderTrends20103(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2"><strong>SRA</strong><br />' + (feature.properties['SRA'] !== null ? Autolinker.link(String(feature.properties['SRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>NAME</strong><br />' + (feature.properties['NAME'] !== null ? Autolinker.link(String(feature.properties['NAME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CONDITION'] !== null ? Autolinker.link(String(feature.properties['CONDITION'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OUTCOME'] !== null ? Autolinker.link(String(feature.properties['OUTCOME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['YEAR'] !== null ? Autolinker.link(String(feature.properties['YEAR'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Geography</th>\
+                        <td>' + (feature.properties['Geography'] !== null ? Autolinker.link(String(feature.properties['Geography'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RegionNum'] !== null ? Autolinker.link(String(feature.properties['RegionNum'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RegionName</th>\
+                        <td>' + (feature.properties['RegionName'] !== null ? Autolinker.link(String(feature.properties['RegionName'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicity'] !== null ? Autolinker.link(String(feature.properties['Urbanicity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Urbanicit2'] !== null ? Autolinker.link(String(feature.properties['Urbanicit2'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SESSort'] !== null ? Autolinker.link(String(feature.properties['SESSort'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Socioecono'] !== null ? Autolinker.link(String(feature.properties['Socioecono'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SDNUM'] !== null ? Autolinker.link(String(feature.properties['SDNUM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Supervisor'] !== null ? Autolinker.link(String(feature.properties['Supervisor'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Case</th>\
+                        <td>' + (feature.properties['Total_Case'] !== null ? Autolinker.link(String(feature.properties['Total_Case'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total_Rate</th>\
+                        <td>' + (feature.properties['Total_Rate'] !== null ? Autolinker.link(String(feature.properties['Total_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Age_Adjust</th>\
+                        <td>' + (feature.properties['Age_Adjust'] !== null ? Autolinker.link(String(feature.properties['Age_Adjust'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Cases</th>\
+                        <td>' + (feature.properties['Male_Cases'] !== null ? Autolinker.link(String(feature.properties['Male_Cases'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Male_Rate</th>\
+                        <td>' + (feature.properties['Male_Rate'] !== null ? Autolinker.link(String(feature.properties['Male_Rate'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Cas</th>\
+                        <td>' + (feature.properties['Female_Cas'] !== null ? Autolinker.link(String(feature.properties['Female_Cas'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Female_Rat</th>\
+                        <td>' + (feature.properties['Female_Rat'] !== null ? Autolinker.link(String(feature.properties['Female_Rat'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['parkSRA'] !== null ? Autolinker.link(String(feature.properties['parkSRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">parkArea</th>\
+                        <td>' + (feature.properties['parkArea'] !== null ? Autolinker.link(String(feature.properties['parkArea'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_DevelopmentalDisorderTrends20103() {
+            return {
+                pane: 'pane_DevelopmentalDisorderTrends20103',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(255,127,0,1.0)',
+            }
+        }
+        map.createPane('pane_DevelopmentalDisorderTrends20103');
+        map.getPane('pane_DevelopmentalDisorderTrends20103').style.zIndex = 603;
+        map.getPane('pane_DevelopmentalDisorderTrends20103').style['mix-blend-mode'] = 'normal';
+    var layer_DevelopmentalDisorderTrends20103 = new L.geoJson(json_DevelopmentalDisorderTrends20103, {
+        attribution: '<a href=""></a>',
+        pane: 'pane_DevelopmentalDisorderTrends20103',
+        onEachFeature: pop_DevelopmentalDisorderTrends20103,
+        style: style_DevelopmentalDisorderTrends20103
+    });
+        bounds_group.addLayer(layer_DevelopmentalDisorderTrends20103);
+        map.addLayer(layer_DevelopmentalDisorderTrends20103);
+        function pop_ParksOpenSpace4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_ParksOpenSpace4(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SRA'] !== null ? Autolinker.link(String(feature.properties['SRA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>Area</strong><br />' + (feature.properties['Area'] !== null ? Autolinker.link(String(feature.properties['Area'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_ParksOpenSpace4() {
+            return {
+                pane: 'pane_ParksOpenSpace4',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(153,0,115,1.0)',
+            }
+        }
+        map.createPane('pane_ParksOpenSpace4');
+        map.getPane('pane_ParksOpenSpace4').style.zIndex = 604;
+        map.getPane('pane_ParksOpenSpace4').style['mix-blend-mode'] = 'normal';
+    var layer_ParksOpenSpace4 = new L.geoJson(json_ParksOpenSpace4, {
+        attribution: '<a href=""></a>',
+        pane: 'pane_ParksOpenSpace4',
+        onEachFeature: pop_ParksOpenSpace4,
+        style: style_ParksOpenSpace4
+    });
+        bounds_group.addLayer(layer_ParksOpenSpace4);
+        map.addLayer(layer_ParksOpenSpace4);
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'<img src="legend/ParksOpenSpace4.png" /> Parks/ Open Space': layer_ParksOpenSpace4,'<img src="legend/DevelopmentalDisorderTrends20103.png" /> Developmental Disorder Trends 2010': layer_DevelopmentalDisorderTrends20103,'<img src="legend/DevelopmentalDisorderTrends20112.png" /> Developmental Disorder Trends 2011': layer_DevelopmentalDisorderTrends20112,'<img src="legend/DevelopmentalDisorderTrends20121.png" /> Developmental Disorder Trends 2012': layer_DevelopmentalDisorderTrends20121,'<img src="legend/DevelopmentalDisorderTrends20130.png" /> Developmental Disorder Trends 2013': layer_DevelopmentalDisorderTrends20130,},{collapsed:false}).addTo(map);
+        setBounds();
+        </script>
+    </body>
+</html>
